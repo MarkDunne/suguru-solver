@@ -21,19 +21,22 @@ defineProps({
         <button @click="this.grid = create_grid(this.grid_width, this.grid_height)">Create</button>
       </div>
     </div>
-    <table>
-      <tr v-for="(row, rowIndex) in grid" :key="rowIndex">
-        <td v-for="(cell, cellIndex) in row" :key="cellIndex"
-          :class="{ top_border: cell.top_border, bot_border: cell.bot_border, left_border: cell.left_border, right_border: cell.right_border, not_in_cage: cell.cage_num == -1 }"
-          @mousedown="mouseDown(rowIndex, cellIndex)" @mouseup="mouseUp" @mouseenter="mouseEnter(rowIndex, cellIndex)">
-          <div class="table-cell">
-            <input class="temp" type="text" autocomplete="off" inputmode="numeric" min="0" v-model="cell.value">
-          </div>
-        </td>
-      </tr>
-    </table>
-    <button @click="submit_puzzle">Solve Puzzle</button>
-    <p v-if="errorMessage">{{ errorMessage }}</p>
+    <div id="grid_section">
+      <table>
+        <tr v-for="(row, rowIndex) in grid" :key="rowIndex">
+          <td v-for="(cell, cellIndex) in row" :key="cellIndex"
+            :class="{ top_border: cell.top_border, bot_border: cell.bot_border, left_border: cell.left_border, right_border: cell.right_border, not_in_cage: cell.cage_num == -1 }"
+            @mousedown="mouseDown(rowIndex, cellIndex)" @mouseup="mouseUp"
+            @mouseenter="mouseEnter(rowIndex, cellIndex)">
+            <div class="table-cell">
+              <input class="temp" type="text" autocomplete="off" inputmode="numeric" min="0" v-model="cell.value">
+            </div>
+          </td>
+        </tr>
+      </table>
+      <button @click="submit_puzzle">Solve Puzzle</button>
+    </div>
+    <h3 id="statusMessage" v-if="statusMessage" :class="[statusSuccess ? 'success' : 'fail']">{{ statusMessage }}</h3>
   </div>
 </template>
 
@@ -49,7 +52,8 @@ export default {
       grid_height: grid_height,
       grid: this.create_grid(grid_width, grid_height),
       cage_counter: 0,
-      errorMessage: '',
+      statusMessage: '',
+      statusSuccess: false,
       isDrawing: false,
       currentRow: -1,
       currentCol: -1
@@ -92,7 +96,7 @@ export default {
     mouseUp() {
       this.isDrawing = false
     },
-    mouseEnter(row, col) {      
+    mouseEnter(row, col) {
       if (this.isDrawing) {
         this.grid[row][col].cage_num = this.cage_counter
 
@@ -109,7 +113,29 @@ export default {
       }
     },
     submit_puzzle() {
-      console.log(this.grid)
+      fetch('http://localhost:5001/solve', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          grid_width: this.grid_width,
+          grid_height: this.grid_height,
+          grid: this.grid
+        })
+      })
+        .then(response => response.json())
+        .then(data => {
+          this.statusSuccess = data.status == 'success'
+          this.statusMessage = data.message
+          if ('solution' in data) {
+            for (let i = 0; i < this.grid_height; i++) {
+              for (let j = 0; j < this.grid_width; j++) {
+                this.grid[i][j].value = data.solution[i][j]
+              }
+            }
+          }
+        })
     }
   }
 }
@@ -162,11 +188,18 @@ input.temp {
   /* pointer-events: none; */
 }
 
-#create_grid_form {
+#create_grid_form, #grid_section {
   margin-bottom: 2rem;
 }
 
 label {
-  margin-right: 1rem;  
+  margin-right: 1rem;
+}
+
+#statusMessage.success {
+  color: green;
+}
+#statusMessage.fail {
+  color: red;
 }
 </style>
