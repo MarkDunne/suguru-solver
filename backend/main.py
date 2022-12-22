@@ -26,7 +26,7 @@ def validate_grid(puzzle_grid):
         for cell in row:
             if cell["cage_num"] == -1:
                 return False
-            if cell["value"] < 0:
+            if int(cell["value"]) < 0:
                 return False
     return True
 
@@ -63,6 +63,23 @@ def cell_ranges(cages):
 @FunctionConstraint
 def NotEqualConstraint(a, b):
     return a != b
+
+def print_solution(solution):
+    cell_ids = solution.keys()
+    for i in sorted(set(i for i, _ in cell_ids)):
+        for j in sorted(set(j for _, j in cell_ids)):
+            print(f'{solution[(i, j)]} ', end='')
+        print()
+
+def count_additional_solutions(solutions_iter, max_iter=10):
+    counter = 0
+    try:
+        while counter < max_iter:
+            solution = next(solutions_iter)
+            counter += 1
+    except StopIteration:
+        pass
+    return counter
 
 
 @app.post("/solve")
@@ -111,12 +128,19 @@ async def solve_suguru(request: Request):
 
     try:
         solution = next(solutions_iter)
+        print_solution(solution)
     except StopIteration:
         return {"status": "fail", "message": "No solution found."}
+
+    num_solutions = 1 + count_additional_solutions(solutions_iter, 9)
+    if num_solutions >= 10:
+        message = f"Solution found! At least {num_solutions} unique solutions."
+    else:
+        message = f"Solution found! Found {num_solutions} unique solutions."
 
     result = []
     for i in range(grid_height):
         result.append([])
         for j in range(grid_width):
             result[i].append(solution[(i, j)])
-    return {"solution": result, "status": "success", "message": "Solution found!"}
+    return {"solution": result, "status": "success", "message": message}
