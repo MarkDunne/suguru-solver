@@ -29,7 +29,8 @@ defineProps({
             @mousedown="mouseDown(rowIndex, cellIndex)" @mouseup="mouseUp"
             @mouseenter="mouseEnter(rowIndex, cellIndex)">
             <div class="table-cell">
-              <input class="temp" type="text" autocomplete="off" inputmode="numeric" min="0" v-model="cell.value">
+              <input 
+                @mousedown.stop type="text" autocomplete="off" inputmode="numeric" min="0" v-model="cell.value">
             </div>
           </td>
         </tr>
@@ -61,7 +62,6 @@ export default {
   },
   methods: {
     create_grid(grid_width, grid_height) {
-
       let grid = []
       for (let i = 0; i < grid_height; i++) {
         grid[i] = []
@@ -70,21 +70,6 @@ export default {
         }
       }
       return grid
-    },
-    validate() {
-      this.errorMessage = ''
-      for (let i = 0; i < this.size; i++) {
-        let row = new Set()
-        let col = new Set()
-        for (let j = 0; j < this.size; j++) {
-          if (this.grid[i][j].value) row.add(this.grid[i][j].value)
-          if (this.grid[j][i].value) col.add(this.grid[j][i].value)
-        }
-        if (row.size !== this.size || col.size !== this.size) {
-          this.errorMessage = 'Invalid puzzle'
-          break
-        }
-      }
     },
     mouseDown(row, col) {
       this.currentRow = row
@@ -181,7 +166,7 @@ td.not_in_cage {
   background-color: rgba(252, 246, 67, 0.539);
 }
 
-input.temp {
+.table-cell input {
   width: 50%;
   text-align: center;
   user-select: none;
