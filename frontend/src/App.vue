@@ -1,5 +1,4 @@
 <script setup>
-import { RouterLink, RouterView } from "vue-router";
 import SuguruSolver from "./components/SuguruSolver.vue";
 </script>
 
@@ -8,9 +7,6 @@ import SuguruSolver from "./components/SuguruSolver.vue";
   <div class="wrapper">
     <SuguruSolver />
   </div>
-
 </template>
 
-<style scoped>
-
-</style>
+<style scoped></style>

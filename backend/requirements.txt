@@ -3,3 +3,4 @@ python-constraint
 networkx
 fastapi
 pydantic
+uvicorn

@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from constraint import *
 import networkx as nx
 from datetime import datetime
@@ -19,7 +20,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 
 def validate_grid(puzzle_grid):
     for row in puzzle_grid:
@@ -144,3 +144,5 @@ async def solve_suguru(request: Request):
         for j in range(grid_width):
             result[i].append(solution[(i, j)])
     return {"solution": result, "status": "success", "message": message}
+
+app.mount('/', StaticFiles(directory="dist", html=True), name="dist")
