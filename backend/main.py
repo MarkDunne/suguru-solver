@@ -103,7 +103,7 @@ async def solve_suguru(request: Request):
     # Add variables for each cell in the grid
     for i in range(grid_height):
         for j in range(grid_width):
-            cell_value = int(grid[i][j].get("value", 0))
+            cell_value = int(grid[i][j].get("value", 0).strip() or 0)
             if cell_value > 0:
                 problem.addVariable((i, j), [cell_value])
             else:

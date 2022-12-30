@@ -5,79 +5,66 @@ defineProps({});
 <template>
   <div id="suguru_solver">
     <div>
+      <h3>Step 1: Create a Grid</h3>
       <div id="create_grid_form">
-        <h2>Create a Grid</h2>
-        <div>
-          <label for="grid_width">Grid Width</label>
-          <input
-            inputmode="numeric"
-            id="grid_width"
-            v-model.number="grid_width"
-          />
+        <div class="grid">
+          <label for="grid_width">Grid Width
+            <input inputmode="numeric" id="grid_width" v-model.number="grid_width" />
+          </label>
+
+          <label for="grid_height">
+            Grid Height
+            <input inputmode="numeric" id="grid_height" v-model.number="grid_height" />
+          </label>
         </div>
-        <div>
-          <label for="grid_height">Grid Height</label>
-          <input
-            inputmode="numeric"
-            id="grid_height"
-            v-model.number="grid_height"
-          />
-        </div>
-        <button
-          @click="this.grid = create_grid(this.grid_width, this.grid_height)"
-        >
-          Create
-        </button>
+        <button @click="update_grid" type="submit">Create</button>
       </div>
     </div>
+
     <div id="grid_section">
-      <table>
+      <h3>Step 2: Add cages and numbers</h3>
+      <p>Click and drag the cells to create suguru cages. Every cell must be in a cage. Enter numbers when you're done!
+      </p>
+      <div id="change_mode" class="grid">
+        <button :class="{ outline: mode != 'draw_cages' }" @click="mode = 'draw_cages'">Draw Cages</button>
+        <button :class="{ outline: mode != 'enter_numbers' }" @click="mode = 'enter_numbers'">Enter Numbers</button>
+      </div>
+      <table @touchmove="touchmove">
         <tr v-for="(row, rowIndex) in grid" :key="rowIndex">
-          <td
-            v-for="(cell, cellIndex) in row"
-            :key="cellIndex"
-            :class="{
-              top_border: cell.top_border,
-              bot_border: cell.bot_border,
-              left_border: cell.left_border,
-              right_border: cell.right_border,
-              not_in_cage: cell.cage_num == -1,
-            }"
-            @mousedown="mouseDown(rowIndex, cellIndex)"
-            @mouseup="mouseUp"
-            @mouseenter="mouseEnter(rowIndex, cellIndex)"
-          >
-            <div class="table-cell">
-              <input
-                @mousedown.stop
-                type="text"
-                autocomplete="off"
-                inputmode="numeric"
-                min="0"
-                v-model="cell.value"
-              />
+          <td v-for="(cell, cellIndex) in row" :key="cellIndex" :class="{
+  top_border: cell.top_border,
+  bot_border: cell.bot_border,
+  left_border: cell.left_border,
+  right_border: cell.right_border,
+  not_in_cage: cell.cage_num == -1,
+}" @mousedown="mouseDown(rowIndex, cellIndex)" @touchstart.prevent="mouseDown(rowIndex, cellIndex)" @mouseup="mouseUp"
+            @touchend="mouseUp" @mouseenter="mouseEnter(rowIndex, cellIndex)">
+            <div class="table-cell" :cellRowIndex="rowIndex" :cellColIndex="cellIndex">
+              <input type="text" autocomplete="off" inputmode="numeric" min="0" v-model="cell.value"
+                :disabled="mode == 'draw_cages'" />
             </div>
           </td>
         </tr>
       </table>
-      <button @click="submit_puzzle">Solve Puzzle</button>
     </div>
-    <h3
-      id="statusMessage"
-      v-if="statusMessage"
-      :class="[statusSuccess ? 'success' : 'fail']"
-    >
-      {{ statusMessage }}
-    </h3>
+
+    <div>
+      <h3>Step 3: Solve!</h3>
+      <button @click="submit_puzzle">Solve Puzzle</button>
+      <h3 id="statusMessage" v-if="statusMessage" :class="[statusSuccess ? 'success' : 'fail']">
+        {{ statusMessage }}
+      </h3>
+    </div>
   </div>
 </template>
 
 <script>
+
 export default {
   name: "App",
   data() {
-    const grid_width = 3;
-    const grid_height = 5;
+    const grid_width = 9;
+    const grid_height = 9;
 
     return {
       grid_width: grid_width,
@@ -89,6 +76,9 @@ export default {
       isDrawing: false,
       currentRow: -1,
       currentCol: -1,
+      mode: 'draw_cages',
+      last_touch_cell_row: null,
+      last_touch_cell_col: null
     };
   },
   methods: {
@@ -97,23 +87,51 @@ export default {
       for (let i = 0; i < grid_height; i++) {
         grid[i] = [];
         for (let j = 0; j < grid_width; j++) {
-          grid[i][j] = { value: 0, cage_num: -1 };
+          grid[i][j] = { value: '', cage_num: -1 };
         }
       }
       return grid;
     },
+    update_grid() {
+      this.grid = this.create_grid(this.grid_width, this.grid_height)
+    },
     mouseDown(row, col) {
-      this.currentRow = row;
-      this.currentCol = col;
-      this.cage_counter += 1;
-      this.isDrawing = true;
-      this.mouseEnter(row, col);
+      this.last_touch_cell_row = null;
+      this.last_touch_cell_col = null;
+
+      if (this.mode == 'draw_cages') {
+        this.currentRow = row;
+        this.currentCol = col;
+        this.cage_counter += 1;
+        this.isDrawing = true;
+        this.mouseEnter(row, col);
+      }
+
+    },
+    touchmove(event) {
+      if (this.mode == 'draw_cages' && this.isDrawing) {
+        const elem = document.elementFromPoint(event.touches[0].clientX, event.touches[0].clientY)
+        if (elem.hasAttribute('cellrowindex') && elem.hasAttribute('cellcolindex')) {
+
+          let cell_row = elem.getAttribute('cellrowindex')
+          let cell_col = elem.getAttribute('cellcolindex')
+
+          if (this.last_touch_cell_row != cell_row || this.last_touch_cell_col != cell_col) {
+            this.mouseEnter(cell_row, cell_col)
+          }
+
+          this.last_touch_cell_row = cell_row
+          this.last_touch_cell_col = cell_col
+        }
+      }
     },
     mouseUp() {
-      this.isDrawing = false;
+      if (this.mode == 'draw_cages') {
+        this.isDrawing = false;
+      }
     },
     mouseEnter(row, col) {
-      if (this.isDrawing) {
+      if (this.mode == 'draw_cages' && this.isDrawing) {
         this.grid[row][col].cage_num = this.cage_counter;
 
         for (let i = 0; i < this.grid_height; i++) {
@@ -163,65 +181,5 @@ export default {
 </script>
 
 <style scoped>
-table {
-  /* border-collapse: collapse; */
-  user-select: none;
-  table-layout: fixed;
-}
 
-td {
-  border: 2px solid #e6e6e6;
-  border-radius: 5px;
-}
-
-td.top_border {
-  border-top: 2px solid red;
-}
-
-td.bot_border {
-  border-bottom: 2px solid red;
-}
-
-td.left_border {
-  border-left: 2px solid red;
-}
-
-td.right_border {
-  border-right: 2px solid red;
-}
-
-div.table-cell {
-  min-width: 60px;
-  min-height: 60px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-td.not_in_cage {
-  background-color: rgba(252, 246, 67, 0.539);
-}
-
-.table-cell input {
-  width: 50%;
-  text-align: center;
-  user-select: none;
-  /* pointer-events: none; */
-}
-
-#create_grid_form,
-#grid_section {
-  margin-bottom: 2rem;
-}
-
-label {
-  margin-right: 1rem;
-}
-
-#statusMessage.success {
-  color: green;
-}
-#statusMessage.fail {
-  color: red;
-}
 </style>
