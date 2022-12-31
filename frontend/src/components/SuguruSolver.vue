@@ -152,6 +152,7 @@ export default {
       }
     },
     submit_puzzle() {
+      this.statusMessage = "Solving..."
       fetch("/solve", {
         method: "POST",
         headers: {

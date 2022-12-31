@@ -21,12 +21,24 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+def parse_cell_value(cell_value):
+    if cell_value is None:
+        return 0
+    if isinstance(cell_value, str):
+        cell_value = cell_value.strip()
+        if cell_value == '':
+            return 0
+        else:
+            return int(cell_value)
+    else:
+        return int(cell_value)
+
 def validate_grid(puzzle_grid):
     for row in puzzle_grid:
         for cell in row:
             if cell["cage_num"] == -1:
                 return False
-            if int(cell["value"]) < 0:
+            if parse_cell_value(cell["value"]) < 0:
                 return False
     return True
 
@@ -103,7 +115,7 @@ async def solve_suguru(request: Request):
     # Add variables for each cell in the grid
     for i in range(grid_height):
         for j in range(grid_width):
-            cell_value = int(grid[i][j].get("value", 0).strip() or 0)
+            cell_value = parse_cell_value(grid[i][j].get("value"))
             if cell_value > 0:
                 problem.addVariable((i, j), [cell_value])
             else:
