@@ -8,13 +8,22 @@ defineProps({});
       <h3>Step 1: Create a Grid</h3>
       <div id="create_grid_form">
         <div class="grid">
-          <label for="grid_width">Grid Width
-            <input inputmode="numeric" id="grid_width" v-model.number="grid_width" />
+          <label for="grid_width"
+            >Grid Width
+            <input
+              inputmode="numeric"
+              id="grid_width"
+              v-model.number="grid_width"
+            />
           </label>
 
           <label for="grid_height">
             Grid Height
-            <input inputmode="numeric" id="grid_height" v-model.number="grid_height" />
+            <input
+              inputmode="numeric"
+              id="grid_height"
+              v-model.number="grid_height"
+            />
           </label>
         </div>
         <button @click="update_grid" type="submit">Create</button>
@@ -23,25 +32,55 @@ defineProps({});
 
     <div id="grid_section">
       <h3>Step 2: Add cages and numbers</h3>
-      <p>Click and drag the cells to create suguru cages. Every cell must be in a cage. Enter numbers when you're done!
+      <p>
+        Click and drag the cells to create suguru cages. Every cell must be in a
+        cage. Enter numbers when you're done!
       </p>
       <div id="change_mode" class="grid">
-        <button :class="{ outline: mode != 'draw_cages' }" @click="mode = 'draw_cages'">Draw Cages</button>
-        <button :class="{ outline: mode != 'enter_numbers' }" @click="mode = 'enter_numbers'">Enter Numbers</button>
+        <button
+          :class="{ outline: mode != 'draw_cages' }"
+          @click="mode = 'draw_cages'"
+        >
+          Draw Cages
+        </button>
+        <button
+          :class="{ outline: mode != 'enter_numbers' }"
+          @click="mode = 'enter_numbers'"
+        >
+          Enter Numbers
+        </button>
       </div>
       <table @touchmove="touchmove">
         <tr v-for="(row, rowIndex) in grid" :key="rowIndex">
-          <td v-for="(cell, cellIndex) in row" :key="cellIndex" :class="{
-  top_border: cell.top_border,
-  bot_border: cell.bot_border,
-  left_border: cell.left_border,
-  right_border: cell.right_border,
-  not_in_cage: cell.cage_num == -1,
-}" @mousedown="mouseDown(rowIndex, cellIndex)" @touchstart.prevent="mouseDown(rowIndex, cellIndex)" @mouseup="mouseUp"
-            @touchend="mouseUp" @mouseenter="mouseEnter(rowIndex, cellIndex)">
-            <div class="table-cell" :cellRowIndex="rowIndex" :cellColIndex="cellIndex">
-              <input type="text" autocomplete="off" inputmode="numeric" min="0" v-model="cell.value"
-                :disabled="mode == 'draw_cages'" />
+          <td
+            v-for="(cell, cellIndex) in row"
+            :key="cellIndex"
+            :class="{
+              top_border: cell.top_border,
+              bot_border: cell.bot_border,
+              left_border: cell.left_border,
+              right_border: cell.right_border,
+              not_in_cage: cell.cage_num == -1,
+            }"
+            @mousedown="mouseDown(rowIndex, cellIndex)"
+            @touchstart.prevent="mouseDown(rowIndex, cellIndex)"
+            @mouseup="mouseUp"
+            @touchend="mouseUp"
+            @mouseenter="mouseEnter(rowIndex, cellIndex)"
+          >
+            <div
+              class="table-cell"
+              :cellRowIndex="rowIndex"
+              :cellColIndex="cellIndex"
+            >
+              <input
+                type="text"
+                autocomplete="off"
+                inputmode="numeric"
+                min="0"
+                v-model="cell.value"
+                :disabled="mode == 'draw_cages'"
+              />
             </div>
           </td>
         </tr>
@@ -50,16 +89,19 @@ defineProps({});
 
     <div>
       <h3>Step 3: Solve!</h3>
-      <button @click="submit_puzzle">Solve Puzzle</button>
-      <h3 id="statusMessage" v-if="statusMessage" :class="[statusSuccess ? 'success' : 'fail']">
+      <button :disabled="solving" @click="submit_puzzle">Solve Puzzle</button>
+      <p
+        id="statusMessage"
+        v-if="statusMessage"
+        :class="[statusSuccess ? 'success' : 'fail']"
+      >
         {{ statusMessage }}
-      </h3>
+      </p>
     </div>
   </div>
 </template>
 
 <script>
-
 export default {
   name: "App",
   data() {
@@ -76,9 +118,10 @@ export default {
       isDrawing: false,
       currentRow: -1,
       currentCol: -1,
-      mode: 'draw_cages',
+      mode: "draw_cages",
       last_touch_cell_row: null,
-      last_touch_cell_col: null
+      last_touch_cell_col: null,
+      solving: false,
     };
   },
   methods: {
@@ -87,51 +130,58 @@ export default {
       for (let i = 0; i < grid_height; i++) {
         grid[i] = [];
         for (let j = 0; j < grid_width; j++) {
-          grid[i][j] = { value: '', cage_num: -1 };
+          grid[i][j] = { value: "", cage_num: -1 };
         }
       }
       return grid;
     },
     update_grid() {
-      this.grid = this.create_grid(this.grid_width, this.grid_height)
+      this.grid = this.create_grid(this.grid_width, this.grid_height);
     },
     mouseDown(row, col) {
       this.last_touch_cell_row = null;
       this.last_touch_cell_col = null;
 
-      if (this.mode == 'draw_cages') {
+      if (this.mode == "draw_cages") {
         this.currentRow = row;
         this.currentCol = col;
         this.cage_counter += 1;
         this.isDrawing = true;
         this.mouseEnter(row, col);
       }
-
     },
     touchmove(event) {
-      if (this.mode == 'draw_cages' && this.isDrawing) {
-        const elem = document.elementFromPoint(event.touches[0].clientX, event.touches[0].clientY)
-        if (elem.hasAttribute('cellrowindex') && elem.hasAttribute('cellcolindex')) {
+      if (this.mode == "draw_cages" && this.isDrawing) {
+        const elem = document.elementFromPoint(
+          event.touches[0].clientX,
+          event.touches[0].clientY
+        );
+        if (
+          elem.hasAttribute("cellrowindex") &&
+          elem.hasAttribute("cellcolindex")
+        ) {
+          let cell_row = elem.getAttribute("cellrowindex");
+          let cell_col = elem.getAttribute("cellcolindex");
 
-          let cell_row = elem.getAttribute('cellrowindex')
-          let cell_col = elem.getAttribute('cellcolindex')
-
-          if (this.last_touch_cell_row != cell_row || this.last_touch_cell_col != cell_col) {
-            this.mouseEnter(cell_row, cell_col)
+          if (
+            this.last_touch_cell_row != cell_row ||
+            this.last_touch_cell_col != cell_col
+          ) {
+            this.mouseEnter(cell_row, cell_col);
           }
 
-          this.last_touch_cell_row = cell_row
-          this.last_touch_cell_col = cell_col
+          this.last_touch_cell_row = cell_row;
+          this.last_touch_cell_col = cell_col;
         }
       }
     },
     mouseUp() {
-      if (this.mode == 'draw_cages') {
+      if (this.mode == "draw_cages") {
         this.isDrawing = false;
       }
     },
     mouseEnter(row, col) {
-      if (this.mode == 'draw_cages' && this.isDrawing) {
+      if (this.mode == "draw_cages" && this.isDrawing) {
         this.grid[row][col].cage_num = this.cage_counter;
 
         for (let i = 0; i < this.grid_height; i++) {
@@ -152,7 +202,8 @@ export default {
       }
     },
     submit_puzzle() {
-      this.statusMessage = "Solving..."
+      this.solving = true;
+      this.statusMessage = "Solving...";
       fetch("/solve", {
         method: "POST",
         headers: {
@@ -164,8 +215,19 @@ export default {
           grid: this.grid,
         }),
       })
-        .then((response) => response.json())
+        .then((response) => {
+          console.log(response);
+          if (response.ok) {
+            return response.json();
+          } else {
+            return {
+              status: "fail",
+              message: "Failed with status: " + response.status,
+            };
+          }
+        })
         .then((data) => {
+          this.solving = false;
           this.statusSuccess = data.status == "success";
           this.statusMessage = data.message;
           if ("solution" in data) {
@@ -181,6 +243,4 @@ export default {
 };
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>

@@ -36,7 +36,7 @@ table {
   }
   
   td.not_in_cage {
-    background-color: rgba(236, 59, 59, 0.56)
+    background-color: var(--nice-red);
   }
   
   .table-cell input {
@@ -58,11 +58,11 @@ table {
   }
   
   #statusMessage.success {
-    color: green;
+    color: var(--nice-green);
   }
   
   #statusMessage.fail {
-    color: red;
+    color: var(--nice-red);
   }
 
   #change_mode button {
