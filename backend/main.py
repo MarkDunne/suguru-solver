@@ -5,33 +5,21 @@ from constraint import *
 import networkx as nx
 from datetime import datetime
 
-app = FastAPI()
+app = FastAPI(docs_url="/api/docs", openapi_url="/api/v1/openapi.json")
 
-origins = [
-    "http://localhost",
-    "http://localhost:8080",
-    "http://localhost:5173",
-]
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 def parse_cell_value(cell_value):
     if cell_value is None:
         return 0
     if isinstance(cell_value, str):
         cell_value = cell_value.strip()
-        if cell_value == '':
+        if cell_value == "":
             return 0
         else:
             return int(cell_value)
     else:
         return int(cell_value)
+
 
 def validate_grid(puzzle_grid):
     for row in puzzle_grid:
@@ -76,12 +64,14 @@ def cell_ranges(cages):
 def NotEqualConstraint(a, b):
     return a != b
 
+
 def print_solution(solution):
     cell_ids = solution.keys()
     for i in sorted(set(i for i, _ in cell_ids)):
         for j in sorted(set(j for _, j in cell_ids)):
-            print(f'{solution[(i, j)]} ', end='')
+            print(f"{solution[(i, j)]} ", end="")
         print()
+
 
 def count_additional_solutions(solutions_iter, max_iter=10):
     counter = 0
@@ -94,7 +84,12 @@ def count_additional_solutions(solutions_iter, max_iter=10):
     return counter
 
 
-@app.post("/solve")
+@app.get("/api/healthcheck")
+async def healthcheck():
+    return {"status": "success", "message": "API is running."}
+
+
+@app.post("/api/solve")
 async def solve_suguru(request: Request):
     request = await request.json()
 
@@ -146,7 +141,9 @@ async def solve_suguru(request: Request):
 
     num_solutions = 1 + count_additional_solutions(solutions_iter, 9)
     if num_solutions >= 10:
-        message = f"Solution found! At least {num_solutions} unique solutions."
+        message = (
+            f"Solution found! At least {num_solutions} unique solutions were found."
+        )
     else:
         message = f"Solution found! Found {num_solutions} unique solutions."
 
@@ -157,4 +154,6 @@ async def solve_suguru(request: Request):
             result[i].append(solution[(i, j)])
     return {"solution": result, "status": "success", "message": message}
 
-app.mount('/', StaticFiles(directory="dist", html=True), name="dist")
+
+# This goes at the bottom so that the API routes are registered first
+app.mount("/", StaticFiles(directory="dist", html=True), name="dist")

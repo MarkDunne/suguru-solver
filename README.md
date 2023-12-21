@@ -1,9 +1,10 @@
 ## Runbook
 
+Use [Just](https://github.com/casey/just) to run commands.
 ```
-uvicorn backend.main:app --reload --port 5001
+# Run lock docker version
+just run
 
-cd frontend && npm run dev
-
-flyctl deploy
+# Deploy to fly
+just deploy
 ```

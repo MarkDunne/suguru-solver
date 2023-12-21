@@ -1,7 +1,3 @@
-<script setup>
-defineProps({});
-</script>
-
 <template>
   <div id="suguru_solver">
     <div>
@@ -102,6 +98,9 @@ defineProps({});
 </template>
 
 <script>
+// import example grid
+import example_grid_6x6 from "../example_grids.js";
+
 export default {
   name: "App",
   data() {
@@ -125,6 +124,14 @@ export default {
     };
   },
   methods: {
+    load_example() {
+      console.log("Loading example from inside");
+      console.log(example_grid_6x6);
+
+      this.grid_width = example_grid_6x6.grid_width;
+      this.grid_height = example_grid_6x6.grid_height;
+      this.grid = example_grid_6x6.grid;
+    },
     create_grid(grid_width, grid_height) {
       let grid = [];
       for (let i = 0; i < grid_height; i++) {
@@ -204,7 +211,7 @@ export default {
     submit_puzzle() {
       this.solving = true;
       this.statusMessage = "Solving...";
-      fetch("/solve", {
+      fetch("/api/solve", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

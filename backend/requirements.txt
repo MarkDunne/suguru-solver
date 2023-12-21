@@ -4,3 +4,4 @@ networkx
 fastapi
 pydantic
 uvicorn
+black
