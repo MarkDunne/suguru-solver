@@ -14,3 +14,5 @@ just deploy
 This app is deployed to [https://sugurusolver.com/](https://sugurusolver.com/) using [fly.io](https://fly.io).
 
 This is a FastAPI + Vue app that solves [Suguru](https://dkmgames.com/Suguru/SuguruTutBasic.htm) puzzles. I originally developed this because I was convinced that the puzzles in the puzzle books had multiple solutions. Indeed, the puzzles often do have multiple solutions and this means that guessing is sometimes the only way to solve the puzzle which is annoying.
+
+The easiest way to get the app running locally is through Docker. After running `just run`, the app will be available at [http://localhost:8000/](http://localhost:8000/).
