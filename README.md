@@ -2,9 +2,9 @@
 
 Use [Just](https://github.com/casey/just) to run commands.
 ```
-# Run lock docker version
+# Run local docker version
 just run
 
-# Deploy to fly
+# Deploy to fly.io
 just deploy
 ```
