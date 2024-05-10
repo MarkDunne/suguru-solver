@@ -46,6 +46,7 @@
           Enter Numbers
         </button>
       </div>
+      <p></p>
       <table @touchmove="touchmove">
         <tr v-for="(row, rowIndex) in grid" :key="rowIndex">
           <td
